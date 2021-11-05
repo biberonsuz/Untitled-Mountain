@@ -38,9 +38,59 @@
 					padding: 5px 5px 2px 5px;
 				}
 			}
+
+			.loading {
+				position:absolute;
+				background: black;
+				width:100vw;
+				height:100vh;
+				z-index: 1000;
+			}
+
+			.lds-ring {
+			  display: inline-block;
+			  position: absolute;
+			  top:50%;
+			  left:50%;
+			  width: 80px;
+			  height: 80px;
+			  transform: translate(-50%,-50%);
+			}
+			.lds-ring div {
+			  box-sizing: border-box;
+			  display: block;
+			  position: absolute;
+			  width: 64px;
+			  height: 64px;
+			  margin: 8px;
+			  border: 8px solid #ffb3bb;
+			  border-radius: 50%;
+			  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+			  border-color: #ffb3bb transparent transparent transparent;
+			}
+			.lds-ring div:nth-child(1) {
+			  animation-delay: -0.45s;
+			}
+			.lds-ring div:nth-child(2) {
+			  animation-delay: -0.3s;
+			}
+			.lds-ring div:nth-child(3) {
+			  animation-delay: -0.15s;
+			}
+			@keyframes lds-ring {
+			  0% {
+			    transform: rotate(0deg);
+			  }
+			  100% {
+			    transform: rotate(360deg);
+			  }
+			}
 		</style>
 	</head>
 	<body>
+		<div class="loading">
+			<div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+		</div>
 		<audio id="audio" src="assets/la-vie-en-rose.mp3"></audio>
 		<div class="info" id="bottom">
 			<a onclick="center()">Center</a> 
@@ -103,6 +153,7 @@
 			let centerZ = 0
 
 			let globalControls
+			let loadedTextures = 0
 
 			function plane( width, height ) {
 
@@ -440,7 +491,16 @@
 
 				scene.add( light );
 
-				const loader = new THREE.TextureLoader()
+				THREE.DefaultLoadingManager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+					console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+				};
+
+				THREE.DefaultLoadingManager.onLoad = function ( ) {
+					console.log( 'Loading Complete!');
+					document.querySelector(".loading").style.display = 'none'
+				};
+
+				const loader = new THREE.TextureLoader(manager)
 
 				//room
 				let roomGeometry = new THREE.BoxBufferGeometry(6000, 3000, 6000)
@@ -537,7 +597,7 @@
 				var panoGeometry = new THREE.SphereBufferGeometry( 500, 60, 60 );
 				panoGeometry.scale( - 1, 1, 1 );
 
-				var panoTexture = loader.load( 'assets/blanc.jpg' );
+				var panoTexture = loader.load( 'assets/blanc.jpg');
 				var panoMaterial = new THREE.MeshLambertMaterial( { map: panoTexture } );
 				pano = new THREE.Mesh( panoGeometry, panoMaterial );
 				pano.receiveShadow = true;
